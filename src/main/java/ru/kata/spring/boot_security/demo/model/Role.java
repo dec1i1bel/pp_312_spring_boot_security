@@ -25,7 +25,7 @@ public class Role {
 
 //    значение name у @JoinColumn соответствует имени связанного поля у User
     @ManyToOne
-    @JoinColumn(name = "id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     public Role() {
