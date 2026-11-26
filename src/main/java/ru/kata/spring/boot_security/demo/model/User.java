@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
@@ -12,6 +13,7 @@ import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -19,7 +21,7 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long user_id;
 
     @NotBlank(message = "Имя не может быть пустым")
     @Size(max = 100)
@@ -43,11 +45,15 @@ public class User {
     @Column(name = "email", nullable = false, length = 255, unique = true)
     private String email;
 
+//    значение mappedBy совпадает с именем поля в Role
+    @OneToMany(mappedBy = "user")
+    private Set<Role> role;
+
     public User() {
     }
 
     public User(Long id, String name, String phone, String email) {
-        this.id = id;
+        this.user_id = id;
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -57,12 +63,12 @@ public class User {
         this(null, name, phone, email);
     }
 
-    public Long getId() {
-        return id;
+    public Long getUserId() {
+        return user_id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setUserId(Long id) {
+        this.user_id = id;
     }
 
     public String getName() {
@@ -89,10 +95,18 @@ public class User {
         this.email = email;
     }
 
+    public Set<Role> getRole() {
+        return role;
+    }
+
+    public void setRole(Set<Role> role) {
+        this.role = role;
+    }
+
     @Override
     public String toString() {
         return "User{" +
-                "id=" + id +
+                "user_id=" + user_id +
                 ", name='" + name + '\'' +
                 ", phone='" + phone + '\'' +
                 ", email='" + email + '\'' +
