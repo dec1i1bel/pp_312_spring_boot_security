@@ -1,32 +1,31 @@
 package ru.kata.spring.boot_security.demo.model;
 
+import org.springframework.security.core.GrantedAuthority;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 import java.util.Objects;
 
 @Entity
 @Table(name = "roles")
-public class Role {
+public class Role implements GrantedAuthority {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long role_id;
 
     @NotBlank(message = "Имя не может быть пустым")
-    @Column(name = "name", nullable = false, length = 30)
+    @Column(nullable = false, length = 30)
     private String name;
 
-//    значение name у @JoinColumn соответствует имени связанного поля у User
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    /*
+    Здесь не нужно описывать связь с User, так как там описана связь @ManyToMany с промежуточной таблицей. Если создать, то будет двунаправленная связь, но для Spring Security достаточно однонаправленной
+     */
 
     public Role() {
     }
@@ -56,14 +55,6 @@ public class Role {
         this.name = name;
     }
 
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
     @Override
     public String toString() {
         return "Role{" +
@@ -83,5 +74,13 @@ public class Role {
     @Override
     public int hashCode() {
         return Objects.hash(name);
+    }
+
+    /*
+    hasRole("ADMIN") ищет ROLE_ADMIN. Метод добавляет префикс, избегая необходимости хранить роли в БД с префиксом
+     */
+    @Override
+    public String getAuthority() {
+        return name.startsWith("ROLE_") ? name : "ROLE_" + name;
     }
 }

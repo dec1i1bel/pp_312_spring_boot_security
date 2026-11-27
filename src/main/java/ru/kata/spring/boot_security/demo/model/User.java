@@ -1,23 +1,30 @@
 package ru.kata.spring.boot_security.demo.model;
 
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
 @Entity
 @Table(name = "users")
-public class User {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,9 +52,17 @@ public class User {
     @Column(name = "email", nullable = false, length = 255, unique = true)
     private String email;
 
-//    значение mappedBy совпадает с именем поля в Role
-    @OneToMany(mappedBy = "user")
-    private Set<Role> role;
+    @NotBlank
+    @Column(nullable = false, length = 255)
+    private String password; // хеш пароля
+
+//    FetchType.EAGER - жадная загрузка. Иначе getAuthorities() вызовется вне сессии и будет LazyInitializationException
+//    В Role не создаётся связываемое поле. Это однонаправленная связь, достаточно для Spring Security
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "users_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<Role> roles = new HashSet<>();
 
     public User() {
     }
@@ -95,12 +110,47 @@ public class User {
         this.email = email;
     }
 
-    public Set<Role> getRole() {
-        return role;
+    public Set<Role> getRoles() {
+        return roles;
     }
 
-    public void setRole(Set<Role> role) {
-        this.role = role;
+    public void setRoles(Set<Role> role) {
+        this.roles = role;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 
     @Override
